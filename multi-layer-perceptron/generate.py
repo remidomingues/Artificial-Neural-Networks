@@ -33,8 +33,9 @@ if __name__ == '__main__':
     # Generating the points
     m_a, m_b = 0, 8
     std_a, std_b = 1., 1.
-    class_a = generate_points(10, mean=(m_a, m_a), std=std_a)
-    class_b = generate_points(10, mean=(m_b, m_b), std=std_b)
+    n_a, n_b = 50, 50
+    class_a = generate_points(n_a, mean=(m_a, m_a), std=std_a)
+    class_b = generate_points(n_b, mean=(m_b, m_b), std=std_b)
 
     # Generating the concatenated matrix
     class_a = np.hstack([class_a, np.zeros((class_a.shape[0], 1))])
@@ -46,7 +47,6 @@ if __name__ == '__main__':
     perceptron = mlp(inputs, target, nhidden=100)
 
     perceptron.mlptrain(inputs, target, eta=0.5, niterations=10000)
-
 
     # Plotting
     plt.figure()
