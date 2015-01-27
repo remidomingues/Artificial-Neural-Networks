@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from mlp import mlp
+
 def generate_points(number, mean, std):
     return mean + np.random.randn(number, 2) * std
 
@@ -16,10 +18,16 @@ if __name__ == '__main__':
     plt.figure()
     plot_points(class_a)
     plot_points(class_b)
-    plt.show()
+    #plt.show()
 
     # Generating the concatenated matrix
     class_a = np.hstack([class_a, np.zeros((class_a.shape[0], 1))])
     class_b = np.hstack([class_b, np.ones((class_b.shape[0], 1))])
     data = np.vstack([class_a, class_b])
+
+    # MLP training
+    inputs, target = data[:, 2:], np.reshape(data[:, 2], (data.shape[0], 1))
+    p = mlp(inputs, target, nhidden=3)
+
+    p.mlptrain(inputs, target, eta=0.5, niterations=100)
     print data
