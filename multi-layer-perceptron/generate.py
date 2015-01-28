@@ -3,11 +3,6 @@ import numpy as np
 
 from mlp import mlp
 
-def generate_points(number, mean, std):
-    res = np.random.randn(number, 2)
-    res = np.array(map(lambda xy:( abs(xy[0]) + mean[0], abs(xy[1]) + mean[1]), res))
-    return res
-
 def plot_points(points, color, style='.'):
     plt.plot(points[:,0], points[:,1], style, color=color)
 
@@ -37,7 +32,7 @@ if __name__ == '__main__':
     std_a, std_b = 1., .5
     n_a, n_b = 100, 100
 
-    class_a = (m_a, m_a) + np.random.randn(n_a, 2) * std_a
+    class_a = m_a + np.random.randn(n_a, 2) * std_a
     class_b = m_b + np.random.randn(n_b, 2) * std_b
 
     # Generating the concatenated matrix
