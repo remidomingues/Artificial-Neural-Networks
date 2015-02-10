@@ -1,7 +1,11 @@
 [xtrain ytrain]=readxy('ballist',2,2);
 [xtest ytest]=readxy('balltest',2,2);
 
-units=20;
+%a = 1.;
+%xtrain = filter(a, [1 a-1], xtrain);
+%ytrain = filter(a, [1 a-1], ytrain);
+
+units=18;
 data=xtrain;
 vqinit;
 singlewinner=1;
