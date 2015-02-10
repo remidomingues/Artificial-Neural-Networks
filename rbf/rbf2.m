@@ -1,5 +1,5 @@
 x = (0:0.1:2*pi)';
-units = 15;
+units = 62;
 f = square(2 * x);
 
 makerbf;
