@@ -15,23 +15,26 @@ def find_winner(input_vec, weights):
 
 
 if __name__ == '__main__':
-    units = 150
+    units = 30
+    iterations = 30
     input_size = len(cities.city[0])
 
     weights = numpy.random.rand(units, input_size)
     for nbh in xrange(units/2, 1, -1): # Neighborhood sizes
-        for city in cities.city:
-            winner, diff = find_winner(city, weights)
+        for i in xrange(iterations):
+            for city in cities.city:
+                winner, diff = find_winner(city, weights)
 
-            # Update weights of all nodes in the neighborhood
-            for i in xrange(winner-nbh, winner+nbh):
-                actual_idx = i % len(weights)
-                weights[actual_idx] += diff[actual_idx] * 0.2
+                # Update weights of all nodes in the neighborhood
+                for i in xrange(winner-nbh, winner+nbh):
+                    actual_idx = i % len(weights)
+                    weights[actual_idx] += diff[actual_idx] * 0.2
 
     winner_per_city = [find_winner(c, weights)[0] for c in cities.city]
 
     # Plot
+    weights_plot = numpy.vstack((weights, numpy.array([weights[0]])))
     plt.figure()
     plt.plot(cities.city[:, 0], cities.city[:, 1], '.r')
-    plt.plot(weights[:, 0], weights[:, 1], 'b')
+    plt.plot(weights_plot[:, 0], weights_plot[:, 1], 'b')
     plt.show()
