@@ -13,7 +13,7 @@ def find_winner(input_vec, weights):
 
 
 if __name__ == '__main__':
-    units = 8
+    units = 100
     input_size = len(anim.props.values()[0])
 
     weights = numpy.random.rand(units, input_size)
