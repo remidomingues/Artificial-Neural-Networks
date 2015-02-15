@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     weights = numpy.random.rand(units, input_size)
     for nbh in xrange(units/2, 1, -1): # Neighborhood sizes
-        for i in xrange(iterations):
+        for k in xrange(iterations):
             for city in cities.city:
                 winner, diff = find_winner(city, weights)
 
@@ -33,8 +33,9 @@ if __name__ == '__main__':
     winner_per_city = [find_winner(c, weights)[0] for c in cities.city]
 
     # Plot
-    weights_plot = numpy.vstack((weights, numpy.array([weights[0]])))
+    weights_plot = numpy.vstack((weights, numpy.array([weights[0]]))) # Looping plot
     plt.figure()
-    plt.plot(cities.city[:, 0], cities.city[:, 1], '.r')
+    plt.plot(cities.city[:, 0], cities.city[:, 1], 'or')
     plt.plot(weights_plot[:, 0], weights_plot[:, 1], 'b')
+    plt.plot(weights_plot[:, 0], weights_plot[:, 1], '.b')
     plt.show()
