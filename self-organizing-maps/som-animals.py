@@ -17,7 +17,7 @@ if __name__ == '__main__':
     input_size = len(anim.props.values()[0])
 
     weights = numpy.random.rand(units, input_size)
-    for nbh in xrange(5, 1, -1): # Neighborhood sizes
+    for nbh in xrange(units/2, 1, -2): # Neighborhood sizes
         for x in anim.animals:
             winner, diff = find_winner(anim.props[x], weights)
 
