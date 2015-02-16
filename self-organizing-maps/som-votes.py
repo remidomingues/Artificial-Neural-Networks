@@ -33,11 +33,12 @@ if __name__ == '__main__':
 
                 # Update weights of all nodes in the neighborhood
                 w_i, w_j = toGrid(winner)
-                for i, j in zip(xrange(w_i-nbh, w_i+nbh), xrange(w_j-nbh, w_j+nbh)):
-                    if not (0 <= i < grid_width) or not (0 <= j < grid_width):
-                        continue
-                    idx = toArray(i, j)
-                    weights[idx] += diff[idx] * 0.2
+                for i in xrange(w_i-nbh, w_i+nbh+1):
+                    for j in xrange(w_j-nbh, w_j+nbh+1):
+                        if not (0 <= i < grid_width) or not (0 <= j < grid_width):
+                            continue
+                        idx = toArray(i, j)
+                        weights[idx] += diff[idx] * 0.2
 
 
     # Socialistiska (left) = S, V, MP
