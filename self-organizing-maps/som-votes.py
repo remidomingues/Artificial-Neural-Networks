@@ -23,18 +23,19 @@ def toArray(i, j):
     return i + j * grid_width
 
 if __name__ == '__main__':
-    iterations = 30
+    iterations = 10
     input_size = len(house.votes.values()[0])
-    grid_width = 10 # Grid size = grid_width^2
+    grid_width = 20 # Grid size = grid_width^2
 
     weights = numpy.random.rand(grid_width*grid_width, input_size)
     for nbh in xrange(grid_width/2-1, 0, -1): # Neighborhood sizes
         for k in xrange(iterations):
-            for voter in house.votes.values():
-                winner, diff = find_winner(voter, weights)
+            for votes in house.votes.values():
+                winner, diff = find_winner(votes, weights)
 
                 # Update weights of all nodes in the neighborhood
-                for i, j in zip(xrange(winner-nbh, winner+nbh), xrange(winner-nbh, winner+nbh)):
+                w_i, w_j = toGrid(winner)
+                for i, j in zip(xrange(w_i-nbh, w_i+nbh), xrange(w_j-nbh, w_j+nbh)):
                     if not (0 <= i < grid_width) or not (0 <= j < grid_width):
                         continue
                     idx = toArray(i, j)
