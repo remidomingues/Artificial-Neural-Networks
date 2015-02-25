@@ -28,7 +28,6 @@ def seq_converge(weights, pattern):
 def small_patterns():
     patterns = [x1, x2, x3]
     weights = utils.learn(patterns)
-    print weights
 
     # Testing that the patterns are "fixpoints"
     for pattern in patterns:
@@ -37,19 +36,19 @@ def small_patterns():
 
     # Test if the network will recall stored patterns from distorted versions
     NUM_TRIALS = 100
-    for i, pattern in enumerate(patterns):
-        success = 0
-        for _ in xrange(NUM_TRIALS):
-            distorted_pattern = utils.flipper(pattern, 2)
-            seq_recovered_pattern = np.array(distorted_pattern)
-
-            for j in xrange(5):
-                distorted_pattern = utils.update(weights, distorted_pattern)
-            seq_converge(weights, seq_recovered_pattern)
-            if utils.samePattern(pattern, distorted_pattern):
-                success += 1
-        print "Pattern #{}: {}/{} recoveries were succesful.".format(i+1, success, NUM_TRIALS)
-
+    for n in xrange(1, 4):
+        print "# Recovering from {} flip(s):".format(n)
+        for i, pattern in enumerate(patterns):
+            success = 0
+            for _ in xrange(NUM_TRIALS):
+                distorted_pattern = utils.flipper(pattern, n)
+                for j in xrange(1000):
+                    utils.updateOne(weights, distorted_pattern)
+                seq_converge(weights, distorted_pattern)
+                if utils.samePattern(pattern, distorted_pattern):
+                    success += 1
+            print "  - Pattern #{}: {}/{} recoveries were succesful.".format(i+1, success, NUM_TRIALS)
+        print
     print "'Small patterns' experiment succesfull!"
 
 def restoring_images():
@@ -99,7 +98,7 @@ def random_connectivity():
 
 
 if __name__ == '__main__':
-    # small_patterns()
+    small_patterns()
     # restoring_images()
-    random_connectivity()
+    # random_connectivity()
     pass
