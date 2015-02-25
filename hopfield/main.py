@@ -17,6 +17,7 @@ def show_pattern(pattern):
 def small_patterns():
     patterns = [x1, x2, x3]
     weights = utils.learn(patterns)
+    print weights
 
     # Testing that the patterns are "fixpoints"
     for pattern in patterns:
@@ -30,7 +31,7 @@ def small_patterns():
         for i in xrange(2):
             distorted_pattern = utils.update(weights, distorted_pattern)
         print pattern, distorted_pattern
-        assert utils.samePattern(pattern, distorted_pattern)
+        assert utils.samePattern(pattern, distorted_pattern), "Stored pattern could not be recalled from distorted version"
 
     print "'Small patterns' experiment succesfull!"
 
@@ -49,16 +50,38 @@ def restoring_images():
 
     sequential_hopfield(weights, figs.p22, figs.p2)
 
-def sequential_hopfield(weights, noisy, original):
-    for i in xrange(40):
-        for _ in xrange(100):
-            utils.updateOne(weights, noisy)
-        show_pattern(noisy)
+def sequential_hopfield(weights, noisy, original=None, iter=4000, display=100):
+    for i in range(1, iter+1):
+        utils.updateOne(weights, noisy)
+
+        # Display
+        if i % display == 0:
+            show_pattern(noisy)
+
         if utils.samePattern(noisy, original):
             print "Recovered the expected pattern."
             break
 
+def random_connectivity():
+    # Generate a random weight matrix
+    weights = np.random.randn(len(figs.p1), len(figs.p1))
+
+    # Randomly update the pattern
+    pattern = np.copy(figs.p1)
+    #show_pattern(pattern)
+    sequential_hopfield(weights, pattern, iter=100, display=100)
+
+    # Make the random weight matrix symmetric
+    weights = 0.5 * (weights + weights.transpose())
+
+    # Randomly update the pattern
+    pattern = np.copy(figs.p1)
+    #show_pattern(pattern)
+    sequential_hopfield(weights, pattern, iter=100, display=100)
+
+
 if __name__ == '__main__':
-    #small_patterns()
-    #restoring_images()
+    # small_patterns()
+    # restoring_images()
+    random_connectivity()
     pass
