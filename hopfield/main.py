@@ -8,9 +8,20 @@ x1 = np.array([-1, -1, 1, -1, 1, -1, -1, 1])
 x2 = np.array([-1, -1, -1, -1, -1, 1, -1, -1])
 x3 = np.array([-1, 1, 1, -1, -1, 1, -1, 1])
 
-def show_pattern(pattern):
+def show_pattern(pattern, title=None):
     plt.matshow(pattern.reshape((32, 32)))
+    if title:
+        plt.title(title)
     plt.show()
+
+def seq_converge(weights, pattern):
+    last_energy = utils.energy(weights, pattern)
+    while True:
+        utils.updateOne(weights, pattern)
+        energy = utils.energy(weights, pattern)
+        if energy == last_energy:
+            break
+        last_energy = energy
 
 # 4) Experiments
 
@@ -25,13 +36,19 @@ def small_patterns():
         assert utils.samePattern(pattern, updated_pattern), "Simple patterns are not fixpoints"
 
     # Test if the network will recall stored patterns from distorted versions
-    for pattern in patterns:
-        distorted_pattern = utils.flipper(pattern, len(pattern) / 2)
-        print pattern, distorted_pattern
-        for i in xrange(2):
-            distorted_pattern = utils.update(weights, distorted_pattern)
-        print pattern, distorted_pattern
-        assert utils.samePattern(pattern, distorted_pattern), "Stored pattern could not be recalled from distorted version"
+    NUM_TRIALS = 100
+    for i, pattern in enumerate(patterns):
+        success = 0
+        for _ in xrange(NUM_TRIALS):
+            distorted_pattern = utils.flipper(pattern, 2)
+            seq_recovered_pattern = np.array(distorted_pattern)
+
+            for j in xrange(5):
+                distorted_pattern = utils.update(weights, distorted_pattern)
+            seq_converge(weights, seq_recovered_pattern)
+            if utils.samePattern(pattern, distorted_pattern):
+                success += 1
+        print "Pattern #{}: {}/{} recoveries were succesful.".format(i+1, success, NUM_TRIALS)
 
     print "'Small patterns' experiment succesfull!"
 
@@ -41,23 +58,24 @@ def restoring_images():
 
     print "! Pattern recovery"
     for i, (original, noisy) in enumerate([(figs.p1, figs.p11), (figs.p2, figs.p22)]):
-        recovered_pattern = utils.update(weights, noisy)
-
-        if utils.samePattern(recovered_pattern, original):
+        noisy = np.array(noisy)
+        show_pattern(noisy, title="Noisy pattern #{}".format(i+1))
+        for _ in xrange(10000):
+            utils.updateOne(weights, noisy)
+        show_pattern(noisy, title="Recovered pattern #{}".format(i+1))
+        if utils.samePattern(noisy, original):
             print "  . Correctly recovered pattern {}".format(i+1)
         else:
             print "  . Couldn't recover pattern {}".format(i+1)
 
-    sequential_hopfield(weights, figs.p22, figs.p2)
+    sequential_hopfield(weights, figs.p22, figs.p2, num_iter=3000, display=300)
 
-def sequential_hopfield(weights, noisy, original=None, iter=4000, display=100):
-    for i in range(1, iter+1):
+def sequential_hopfield(weights, noisy, original=None, num_iter=100, display=100):
+    for i in xrange(1, 1 + num_iter):
         utils.updateOne(weights, noisy)
-
         # Display
         if i % display == 0:
-            show_pattern(noisy)
-
+            show_pattern(noisy, title="Pattern recovered after {} iterations.".format(i))
         if utils.samePattern(noisy, original):
             print "Recovered the expected pattern."
             break
@@ -69,7 +87,7 @@ def random_connectivity():
     # Randomly update the pattern
     pattern = np.copy(figs.p1)
     #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, iter=100, display=100)
+    sequential_hopfield(weights, pattern, num_iter=100, display=100)
 
     # Make the random weight matrix symmetric
     weights = 0.5 * (weights + weights.transpose())
@@ -77,7 +95,7 @@ def random_connectivity():
     # Randomly update the pattern
     pattern = np.copy(figs.p1)
     #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, iter=100, display=100)
+    sequential_hopfield(weights, pattern, num_iter=100, display=100)
 
 
 if __name__ == '__main__':
