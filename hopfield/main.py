@@ -85,20 +85,75 @@ def random_connectivity():
 
     # Randomly update the pattern
     pattern = np.copy(figs.p1)
+
     #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, num_iter=100, display=100)
+    sequential_hopfield(weights, pattern, num_iter=300, display=300)
 
     # Make the random weight matrix symmetric
     weights = 0.5 * (weights + weights.transpose())
 
     # Randomly update the pattern
     pattern = np.copy(figs.p1)
-    #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, num_iter=100, display=100)
 
+    #show_pattern(pattern)
+    sequential_hopfield(weights, pattern, num_iter=300, display=300)
+
+def capacity(random=False, length=20, ntrials=10, npatterns=10):
+    if not random:
+        patterns = [figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9]
+    else:
+        patterns = [utils.rndPattern(length) for _ in xrange(npatterns)]
+
+    # print "! Capacity benchmarks: pattern_length={} updates={}, attempts={}".format(
+    #    len(patterns[0]), len(patterns[0])*10, ntrials)
+
+    print "! Capacity benchmarks: pattern_length={}".format(len(patterns[0]))
+
+    # Increasing pattern memory
+    for i in range(1, len(patterns)+1):
+        weights = utils.learn(patterns[:i])
+        nmin = len(patterns[0])+1
+        nmax = -1
+
+        # Applying benchmark on each pattern stored
+        for pattern in patterns:
+            recovered = False
+
+            # Increasing pattern noise
+            for n in range(1, len(patterns[0])+1):
+                # recovered = False
+
+                # Multiple attemps if failure
+                # for t in xrange(ntrials):
+                noisy_pattern = utils.flipper(pattern, n)
+                    # Pattern recovery
+                    # for j in xrange(len(patterns[0])*10):
+                    #     utils.updateOne(weights, noisy_pattern)
+                noisy_pattern = utils.update(weights, noisy_pattern)
+
+                if not utils.samePattern(pattern, noisy_pattern):
+                    # recovered = True
+                    if n < nmin:
+                        nmin = n
+                    break
+                        # break
+                    # elif n < nmin:
+                    #     nmin = n
+                    # elif n > nmax:
+                    #     nmax = n
+
+                # if not recovered:
+                #     break
+
+            if not recovered:
+                break
+        # print "{} stored - first failure at {}, failed recovery at {} ({} attempts)".format(i, nmin, nmax, ntrials)
+        print "{} stored - failed recovery at {}".format(i, nmin)
 
 if __name__ == '__main__':
-    small_patterns()
+    # small_patterns()
     # restoring_images()
     # random_connectivity()
+    capacity()
+    # capacity(random=True, length=64, npatterns=15)
     pass
