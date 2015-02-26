@@ -144,7 +144,7 @@ def random_connectivity():
     pattern = np.copy(figs.p1)
 
     #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, num_iter=300, display=300)
+    sequential_hopfield(weights, pattern, num_iter=10000, display=500)
 
     # Make the random weight matrix symmetric
     weights = 0.5 * (weights + weights.transpose())
@@ -153,9 +153,9 @@ def random_connectivity():
     pattern = np.copy(figs.p1)
 
     #show_pattern(pattern)
-    sequential_hopfield(weights, pattern, num_iter=300, display=300)
+    sequential_hopfield(weights, pattern, num_iter=10000, display=500)
 
-def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10, bias=[0]):
+def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10, bias=[0], plot=False):
     if force_recovery:
         print "! Capacity benchmarks: pattern_length={} updates={}, attempts={}".format(
            len(patterns[0]), len(patterns[0])*10, ntrials)
@@ -230,6 +230,31 @@ def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10,
                     i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
                     max(recovery_failure), recovery_failure.index(max(recovery_failure)), recovery_failure)
 
+def quantitative_plot(patterns):
+    FLIPPED = 30
+    x = []
+    y = []
+    for n in xrange(1, len(patterns) + 1):
+        x.append(n)
+        considered_patterns = patterns[:n]
+        weights = utils.learn(considered_patterns)
+        recovered = 0
+        for p in considered_patterns:
+            for trial in xrange(10):
+                noisy = utils.flipper(p, FLIPPED)
+                for _ in xrange(10 * len(p)):
+                    utils.updateOne(weights, noisy)
+                    if utils.samePattern(noisy, p):
+                        break
+
+            if utils.samePattern(noisy, p):
+                recovered +=1
+        y.append(recovered)
+
+    plt.plot(x, y)
+    plt.title("Evolution of capacity with the number of patterns")
+    plt.show()
+
 def getRandomPatterns(n, length, bias=0):
     return np.array([biasedRandomPattern(length, bias) for _ in xrange(n)])
 
@@ -267,7 +292,7 @@ def sparsePatterns(n, length, activity=0.1):
 
 if __name__ == '__main__':
     # small_patterns()
-    restoring_images()
+    # restoring_images()
     # random_connectivity()
 
     ## Capacity (1)
@@ -280,8 +305,10 @@ if __name__ == '__main__':
     # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
 
     ## Quantitative measurements
-    # patterns = getRandomPatterns(20, 128, bias=-0.5)
-    # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+    #patterns = getRandomPatterns(20, 128, bias=-0.5)
+    #capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+    #quantitative_plot(patterns)
+
 
     ## Sparse patterns
     # sparse_patterns = sparsePatterns(10, 100, 0.1)
