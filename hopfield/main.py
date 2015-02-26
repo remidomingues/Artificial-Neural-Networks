@@ -89,12 +89,14 @@ def restoring_images():
     pattern = figs.p1
     attractors = set()
     print "! Pattern recovery with varying distortion:"
-    for n in xrange(1, len(pattern) - 1):
+    for n in xrange(1, len(pattern) - 1, 5):
         print "  * n = {}/{}".format(n, len(pattern))
         for trial in xrange(10):
             noisy = utils.flipper(pattern, n)
-            for _ in xrange(5000):
+            for _ in xrange(20000):
                 utils.updateOne(weights, noisy)
+                if utils.samePattern(pattern, noisy):
+                    break
             attractors.add(tuple(noisy.tolist()))
             if utils.samePattern(pattern, noisy):
                 break
@@ -265,21 +267,25 @@ def sparsePatterns(n, length, activity=0.1):
 
 if __name__ == '__main__':
     # small_patterns()
-    # restoring_images()
+    restoring_images()
     # random_connectivity()
 
+    ## Capacity (1)
     # patterns = np.array([figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9])
     # capacity_benchmarks(patterns)
 
+    ## Capacity (2)
     # patterns = getRandomPatterns(20, 128)
     # capacity_benchmarks(patterns)
     # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
 
+    ## Quantitative measurements
     # patterns = getRandomPatterns(20, 128, bias=-0.5)
     # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
 
-    sparse_patterns = sparsePatterns(10, 100, 0.1)
-    bias = np.array(xrange(10)) / 10.
-    capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
+    ## Sparse patterns
+    # sparse_patterns = sparsePatterns(10, 100, 0.1)
+    # bias = np.array(xrange(10)) / 10.
+    # capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
 
     pass
