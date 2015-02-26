@@ -30,9 +30,11 @@ def small_patterns():
     weights = utils.learn(patterns)
 
     # Testing that the patterns are "fixpoints"
-    for pattern in patterns:
+    for i, pattern in enumerate(patterns):
         updated_pattern = utils.update(weights, pattern)
-        assert utils.samePattern(pattern, updated_pattern), "Simple patterns are not fixpoints"
+        if utils.samePattern(pattern, updated_pattern):
+            print "* Pattern #{} is a fixpoint, as expected.".format(i+1)
+    print
 
     # Test if the network will recall stored patterns from distorted versions
     NUM_TRIALS = 100
@@ -42,13 +44,27 @@ def small_patterns():
             success = 0
             for _ in xrange(NUM_TRIALS):
                 distorted_pattern = utils.flipper(pattern, n)
-                for j in xrange(1000):
+                for j in xrange(500):
                     utils.updateOne(weights, distorted_pattern)
-                seq_converge(weights, distorted_pattern)
+
                 if utils.samePattern(pattern, distorted_pattern):
                     success += 1
             print "  - Pattern #{}: {}/{} recoveries were succesful.".format(i+1, success, NUM_TRIALS)
         print
+
+    # Finding unexpected attractors
+    attractors = set()
+    for i in xrange(1000):
+        pattern = utils.rndPattern(len(patterns[0]))
+        for _ in xrange(100):
+            utils.updateOne(weights, pattern)
+        if not any(np.all(pattern == p) for p in patterns):
+            attractors.add(tuple(pattern.tolist()))
+
+    print "# Unexpected attractors:"
+    print '\n'.join(map(str, attractors))
+    print
+
     print "'Small patterns' experiment succesfull!"
 
 def restoring_images():
