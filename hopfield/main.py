@@ -98,89 +98,133 @@ def random_connectivity():
     #show_pattern(pattern)
     sequential_hopfield(weights, pattern, num_iter=300, display=300)
 
-def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10):
+def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10, bias=[0]):
     if force_recovery:
         print "! Capacity benchmarks: pattern_length={} updates={}, attempts={}".format(
            len(patterns[0]), len(patterns[0])*10, ntrials)
     else:
         print "! Capacity benchmarks: pattern_length={}".format(len(patterns[0]))
 
-    # Increasing pattern memory
-    for i in range(1, len(patterns)+1):
-        recovery_failure = [0] * i
-        weights = utils.learn(patterns[:i])
-        nmin = len(patterns[0])+1
-        pmin = None
+    for b in bias:
+        if b != 0:
+            print "=> BENCHMARKS: bias={}".format(b)
+        # Increasing pattern memory
+        for i in range(1, len(patterns)+1):
+            recovery_failure = [0] * i
+            if b == 0:
+                weights = utils.learn(patterns[:i])
+            else:
+                weights = biasedLearn(patterns[:i])
+            nmin = len(patterns[0])+1
+            pmin = None
 
-        # Applying benchmark on each pattern stored
-        for p in xrange(i):
-            pattern = patterns[p]
-            recovered = False
+            # Applying benchmark on each pattern stored
+            for p in xrange(i):
+                pattern = patterns[p]
+                recovered = False
 
-            # Increasing pattern noise
-            for n in range(1, len(patterns[0])+1):
-                if not force_recovery:
-                    # Random noise
-                    noisy_pattern = utils.flipper(pattern, n)
-                    # Pattern recovery
-                    noisy_pattern = utils.update(weights, noisy_pattern)
-
-                    if not utils.samePattern(pattern, noisy_pattern):
-                        recovery_failure[p] = n
-                        break
-
-                else:
-                    recovered = False
-
-                    # Multiple attemps if failure
-                    for t in xrange(ntrials):
+                # Increasing pattern noise
+                for n in range(1, len(patterns[0])+1):
+                    if not force_recovery:
                         # Random noise
                         noisy_pattern = utils.flipper(pattern, n)
-
                         # Pattern recovery
-                        for j in xrange(len(patterns[0])*10):
-                            utils.updateOne(weights, noisy_pattern)
+                        noisy_pattern = utils.update(weights, noisy_pattern)
 
-                        if utils.samePattern(pattern, noisy_pattern):
-                            recovered = True
-                            break
-                        else:
-                            if n < nmin:
-                                nmin = n
-                                pmin = p+1
+                        if not utils.samePattern(pattern, noisy_pattern):
                             recovery_failure[p] = n
+                            break
 
-                    if not recovered:
-                        break
+                    else:
+                        recovered = False
 
-        if force_recovery:
-            print ("{} stored - All patterns recovered until {} (p{} failed) - Last failure at {} by p{}\n"+
-                "First attempt failed by p{} at {}\nDetails: {}").format(
-                i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
-                max(recovery_failure), recovery_failure.index(max(recovery_failure)),
-                nmin, pmin, recovery_failure)
-        else:
-            print "{} stored - All patterns recovered until {} (p{} failed) - Last failure at {} by p{}\nDetails: {}".format(
-                i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
-                max(recovery_failure), recovery_failure.index(max(recovery_failure)), recovery_failure)
+                        # Multiple attemps if failure
+                        for t in xrange(ntrials):
+                            # Random noise
+                            noisy_pattern = utils.flipper(pattern, n)
+
+                            # Pattern recovery
+                            for j in xrange(len(patterns[0])*10):
+                                if b == 0:
+                                    utils.updateOne(weights, noisy_pattern)
+                                else:
+                                    biasedUpdateOne(weights, noisy_pattern, b)
+
+                            if utils.samePattern(pattern, noisy_pattern):
+                                recovered = True
+                                break
+                            else:
+                                if n < nmin:
+                                    nmin = n
+                                    pmin = p+1
+                                recovery_failure[p] = n
+
+                        if not recovered:
+                            break
+
+            if force_recovery:
+                print ("{} stored - All patterns recovered until {} (p{} failed) - Last failure at {} by p{}\n"+
+                    "First attempt failed by p{} at {}\nDetails: {}").format(
+                    i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
+                    max(recovery_failure), recovery_failure.index(max(recovery_failure)),
+                    nmin, pmin, recovery_failure)
+            else:
+                print "{} stored - All patterns recovered until {} (p{} failed) - Last failure at {} by p{}\nDetails: {}".format(
+                    i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
+                    max(recovery_failure), recovery_failure.index(max(recovery_failure)), recovery_failure)
 
 def getRandomPatterns(n, length, bias=0):
-    return [biasedRandomPattern(length, bias) for _ in xrange(n)]
+    return np.array([biasedRandomPattern(length, bias) for _ in xrange(n)])
 
 def biasedRandomPattern(n, bias=0):
     "Create a random pattern of length n"
-    return np.sign( np.random.randn(n) - bias )
+    return np.sign(np.random.randn(n) + bias)
+
+def biasedLearn(patterns):
+    "Use Hebbs rule to find the weight matrix for a list of patterns"
+    n = len(patterns[0])
+    w = np.zeros((n, n))
+
+    # Substract average activity to set mean at 0
+    avg = sum([sum(p) for p in patterns])
+    if avg != 0:
+        patterns = patterns / avg
+
+    # Hebbs rule
+    for p in patterns:
+        w += np.outer(p, p)
+
+    # Remove self connections
+    return w - np.diag(np.diag(w))
+
+def biasedUpdateOne(w, x, bias=0):
+    "Update one element in x"
+    i = np.random.randint(len(x))
+    x[i] = bias + bias * np.sign(np.dot(w[i,:], x) - bias)
+
+def sparsePatterns(n, length, activity=0.1):
+    nactivity = (int) (length*activity)
+    patterns = np.array([np.array([1]*nactivity + [0]*(length-nactivity)) for _ in xrange(n)])
+    map(np.random.shuffle, patterns)
+    return patterns
 
 if __name__ == '__main__':
     # small_patterns()
     # restoring_images()
     # random_connectivity()
 
-    # patterns = [figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9]
+    # patterns = np.array([figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9])
     # capacity_benchmarks(patterns)
 
-    patterns = getRandomPatterns(20, 128)
+    # patterns = getRandomPatterns(20, 128)
     # capacity_benchmarks(patterns)
-    capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+    # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+
+    # patterns = getRandomPatterns(20, 128, bias=-0.5)
+    # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+
+    sparse_patterns = sparsePatterns(10, 100, 0.1)
+    bias = np.array(xrange(10)) / 10.
+    capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
 
     pass

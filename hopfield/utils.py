@@ -12,8 +12,12 @@ def learn(patterns):
     "Use Hebbs rule to find the weight matrix for a list of patterns"
     n = len(patterns[0])
     w = numpy.zeros((n, n))
+
+    # Hebbs rule
     for p in patterns:
         w += numpy.outer(p, p)
+
+    # Remove self connections
     return w - numpy.diag(numpy.diag(w))
 
 def update(w, x):
