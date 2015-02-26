@@ -98,12 +98,7 @@ def random_connectivity():
     #show_pattern(pattern)
     sequential_hopfield(weights, pattern, num_iter=300, display=300)
 
-def capacity_benchmarks(random=False, length=20, npatterns=10, force_recovery=False, updates=200, ntrials=10):
-    if not random:
-        patterns = [figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9]
-    else:
-        patterns = [utils.rndPattern(length) for _ in xrange(npatterns)]
-
+def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10):
     if force_recovery:
         print "! Capacity benchmarks: pattern_length={} updates={}, attempts={}".format(
            len(patterns[0]), len(patterns[0])*10, ntrials)
@@ -169,11 +164,23 @@ def capacity_benchmarks(random=False, length=20, npatterns=10, force_recovery=Fa
                 i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
                 max(recovery_failure), recovery_failure.index(max(recovery_failure)), recovery_failure)
 
+def getRandomPatterns(n, length, bias=0):
+    return [biasedRandomPattern(length, bias) for _ in xrange(n)]
+
+def biasedRandomPattern(n, bias=0):
+    "Create a random pattern of length n"
+    return np.sign( np.random.randn(n) - bias )
+
 if __name__ == '__main__':
     # small_patterns()
     # restoring_images()
     # random_connectivity()
-    # capacity_benchmarks()
-    # capacity_benchmarks(random=True, length=128, npatterns=20)
-    capacity_benchmarks(random=True, length=128, npatterns=20, force_recovery=True, updates=1000, ntrials=10)
+
+    # patterns = [figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9]
+    # capacity_benchmarks(patterns)
+
+    patterns = getRandomPatterns(20, 128)
+    # capacity_benchmarks(patterns)
+    capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+
     pass
