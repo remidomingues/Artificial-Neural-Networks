@@ -71,7 +71,7 @@ def restoring_images():
     patterns = [figs.p1, figs.p2, figs.p3]
     weights = utils.learn(patterns)
 
-    print "! Pattern recovery"
+    print "! Pattern recovery ( 1 & 2 )"
     for i, (original, noisy) in enumerate([(figs.p1, figs.p11), (figs.p2, figs.p22)]):
         noisy = np.array(noisy)
         show_pattern(noisy, title="Noisy pattern #{}".format(i+1))
@@ -82,8 +82,26 @@ def restoring_images():
             print "  . Correctly recovered pattern {}".format(i+1)
         else:
             print "  . Couldn't recover pattern {}".format(i+1)
+    print
+    #sequential_hopfield(weights, figs.p22, figs.p2, num_iter=3000, display=300)
 
-    sequential_hopfield(weights, figs.p22, figs.p2, num_iter=3000, display=300)
+    # Testing recovering distorted patterns
+    pattern = figs.p1
+    print "! Pattern recovery with varying distortion:"
+    for n in xrange(1, len(pattern) - 1):
+        print "  * n = {}/{}".format(n, len(pattern))
+        for trial in xrange(10):
+            noisy = utils.flipper(pattern, n)
+            for _ in xrange(5000):
+                utils.updateOne(weights, noisy)
+            if utils.samePattern(pattern, noisy):
+                break
+
+        if utils.samePattern(pattern, noisy):
+            print "   . Correctly recovered the pattern (on at least one of the trials)"
+        else:
+            print "   * Couldn't recover the pattern, stopping."
+            break
 
 def sequential_hopfield(weights, noisy, original=None, num_iter=100, display=100):
     for i in xrange(1, 1 + num_iter):
@@ -189,14 +207,14 @@ def biasedRandomPattern(n, bias=0):
 
 if __name__ == '__main__':
     # small_patterns()
-    # restoring_images()
+    restoring_images()
     # random_connectivity()
 
     # patterns = [figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9]
     # capacity_benchmarks(patterns)
 
-    patterns = getRandomPatterns(20, 128)
+    # patterns = getRandomPatterns(20, 128)
     # capacity_benchmarks(patterns)
-    capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+    # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
 
     pass
