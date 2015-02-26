@@ -87,6 +87,7 @@ def restoring_images():
 
     # Testing recovering distorted patterns
     pattern = figs.p1
+    attractors = set()
     print "! Pattern recovery with varying distortion:"
     for n in xrange(1, len(pattern) - 1):
         print "  * n = {}/{}".format(n, len(pattern))
@@ -94,6 +95,7 @@ def restoring_images():
             noisy = utils.flipper(pattern, n)
             for _ in xrange(5000):
                 utils.updateOne(weights, noisy)
+            attractors.add(tuple(noisy.tolist()))
             if utils.samePattern(pattern, noisy):
                 break
 
@@ -102,6 +104,25 @@ def restoring_images():
         else:
             print "   * Couldn't recover the pattern, stopping."
             break
+
+
+    # Energy at the different attractors
+    for i, attr in enumerate(attractors):
+        print "* Energy at attractor #{}: {}".format(i + 1, utils.energy(weights, np.array(attr)))
+    print
+
+    # Studying the change of energy at each iteration
+    noisy = utils.flipper(figs.p1, 40)
+    iterations = 4000
+    iterations = range(iterations)
+    energies = []
+    for iteration in iterations:
+        energies.append(utils.energy(weights, noisy))
+        utils.updateOne(weights, noisy)
+    plt.plot(iterations, energies, '-b')
+    plt.title("Evolution of the energy at each iteration")
+    plt.show()
+
 
 def sequential_hopfield(weights, noisy, original=None, num_iter=100, display=100):
     for i in xrange(1, 1 + num_iter):
