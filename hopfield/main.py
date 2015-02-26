@@ -30,9 +30,11 @@ def small_patterns():
     weights = utils.learn(patterns)
 
     # Testing that the patterns are "fixpoints"
-    for pattern in patterns:
+    for i, pattern in enumerate(patterns):
         updated_pattern = utils.update(weights, pattern)
-        assert utils.samePattern(pattern, updated_pattern), "Simple patterns are not fixpoints"
+        if utils.samePattern(pattern, updated_pattern):
+            print "* Pattern #{} is a fixpoint, as expected.".format(i+1)
+    print
 
     # Test if the network will recall stored patterns from distorted versions
     NUM_TRIALS = 100
@@ -42,20 +44,34 @@ def small_patterns():
             success = 0
             for _ in xrange(NUM_TRIALS):
                 distorted_pattern = utils.flipper(pattern, n)
-                for j in xrange(1000):
+                for j in xrange(500):
                     utils.updateOne(weights, distorted_pattern)
-                seq_converge(weights, distorted_pattern)
+
                 if utils.samePattern(pattern, distorted_pattern):
                     success += 1
             print "  - Pattern #{}: {}/{} recoveries were succesful.".format(i+1, success, NUM_TRIALS)
         print
+
+    # Finding unexpected attractors
+    attractors = set()
+    for i in xrange(1000):
+        pattern = utils.rndPattern(len(patterns[0]))
+        for _ in xrange(100):
+            utils.updateOne(weights, pattern)
+        if not any(np.all(pattern == p) for p in patterns):
+            attractors.add(tuple(pattern.tolist()))
+
+    print "# Unexpected attractors:"
+    print '\n'.join(map(str, attractors))
+    print
+
     print "'Small patterns' experiment succesfull!"
 
 def restoring_images():
     patterns = [figs.p1, figs.p2, figs.p3]
     weights = utils.learn(patterns)
 
-    print "! Pattern recovery"
+    print "! Pattern recovery ( 1 & 2 )"
     for i, (original, noisy) in enumerate([(figs.p1, figs.p11), (figs.p2, figs.p22)]):
         noisy = np.array(noisy)
         show_pattern(noisy, title="Noisy pattern #{}".format(i+1))
@@ -66,8 +82,47 @@ def restoring_images():
             print "  . Correctly recovered pattern {}".format(i+1)
         else:
             print "  . Couldn't recover pattern {}".format(i+1)
+    print
+    #sequential_hopfield(weights, figs.p22, figs.p2, num_iter=3000, display=300)
 
-    sequential_hopfield(weights, figs.p22, figs.p2, num_iter=3000, display=300)
+    # Testing recovering distorted patterns
+    pattern = figs.p1
+    attractors = set()
+    print "! Pattern recovery with varying distortion:"
+    for n in xrange(1, len(pattern) - 1):
+        print "  * n = {}/{}".format(n, len(pattern))
+        for trial in xrange(10):
+            noisy = utils.flipper(pattern, n)
+            for _ in xrange(5000):
+                utils.updateOne(weights, noisy)
+            attractors.add(tuple(noisy.tolist()))
+            if utils.samePattern(pattern, noisy):
+                break
+
+        if utils.samePattern(pattern, noisy):
+            print "   . Correctly recovered the pattern (on at least one of the trials)"
+        else:
+            print "   * Couldn't recover the pattern, stopping."
+            break
+
+
+    # Energy at the different attractors
+    for i, attr in enumerate(attractors):
+        print "* Energy at attractor #{}: {}".format(i + 1, utils.energy(weights, np.array(attr)))
+    print
+
+    # Studying the change of energy at each iteration
+    noisy = utils.flipper(figs.p1, 40)
+    iterations = 4000
+    iterations = range(iterations)
+    energies = []
+    for iteration in iterations:
+        energies.append(utils.energy(weights, noisy))
+        utils.updateOne(weights, noisy)
+    plt.plot(iterations, energies, '-b')
+    plt.title("Evolution of the energy at each iteration")
+    plt.show()
+
 
 def sequential_hopfield(weights, noisy, original=None, num_iter=100, display=100):
     for i in xrange(1, 1 + num_iter):
