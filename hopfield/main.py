@@ -268,9 +268,8 @@ def biasedLearn(patterns):
     w = np.zeros((n, n))
 
     # Substract average activity to set mean at 0
-    avg = sum([sum(p) for p in patterns])
-    if avg != 0:
-        patterns = patterns / avg
+    avg = sum(sum(p) for p in patterns) / float(n * len(patterns))
+    patterns = patterns - avg
 
     # Hebbs rule
     for p in patterns:
@@ -285,7 +284,7 @@ def biasedUpdateOne(w, x, bias=0):
     x[i] = bias + bias * np.sign(np.dot(w[i,:], x) - bias)
 
 def sparsePatterns(n, length, activity=0.1):
-    nactivity = (int) (length*activity)
+    nactivity = int(length*activity)
     patterns = np.array([np.array([1]*nactivity + [0]*(length-nactivity)) for _ in xrange(n)])
     map(np.random.shuffle, patterns)
     return patterns
@@ -295,22 +294,22 @@ if __name__ == '__main__':
     # restoring_images()
     # random_connectivity()
 
-    ## Capacity (1)
+    ## Capacity
     # patterns = np.array([figs.p1, figs.p2, figs.p3, figs.p4, figs.p5, figs.p6, figs.p7, figs.p8, figs.p9])
     # capacity_benchmarks(patterns)
+    # quantitative_plot(patterns)
 
-    ## Capacity (2)
+    ## Quantitative measurements
     # patterns = getRandomPatterns(20, 128)
     # capacity_benchmarks(patterns)
     # capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
-
-    ## Quantitative measurements
-    #patterns = getRandomPatterns(20, 128, bias=-0.5)
-    #capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
-    #quantitative_plot(patterns)
-
+    # quantitative_plot(patterns)
 
     ## Sparse patterns
+    # patterns = getRandomPatterns(20, 128, bias=-0.5)
+    #capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
+    # quantitative_plot(patterns)
+
     # sparse_patterns = sparsePatterns(10, 100, 0.1)
     # bias = np.array(xrange(10)) / 10.
     # capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
