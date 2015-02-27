@@ -1,3 +1,5 @@
+from collections import Counter
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -89,13 +91,13 @@ def restoring_images():
     pattern = figs.p1
     attractors = set()
     print "! Pattern recovery with varying distortion:"
-    for n in xrange(1, len(pattern) - 1, 5):
+    for n in xrange(1, len(pattern) - 1, 10):
         print "  * n = {}/{}".format(n, len(pattern))
         for trial in xrange(10):
             noisy = utils.flipper(pattern, n)
-            for _ in xrange(20000):
+            for l in xrange(20000):
                 utils.updateOne(weights, noisy)
-                if utils.samePattern(pattern, noisy):
+                if l % 1000 == 0 and utils.samePattern(pattern, noisy):
                     break
             attractors.add(tuple(noisy.tolist()))
             if utils.samePattern(pattern, noisy):
@@ -109,13 +111,17 @@ def restoring_images():
 
 
     # Energy at the different attractors
-    for i, attr in enumerate(attractors):
-        print "* Energy at attractor #{}: {}".format(i + 1, utils.energy(weights, np.array(attr)))
-    print
+    x = Counter()
+    for attr in attractors:
+        energy = utils.energy(weights, np.array(attr))
+        x[energy] += 1
+    plt.plot(x.keys(), x.values(), 'b.')
+    plt.title("Energy at different attractors")
+    plt.show()
 
     # Studying the change of energy at each iteration
     noisy = utils.flipper(figs.p1, 40)
-    iterations = 4000
+    iterations = 5000
     iterations = range(iterations)
     energies = []
     for iteration in iterations:
@@ -291,7 +297,7 @@ def sparsePatterns(n, length, activity=0.1):
 
 if __name__ == '__main__':
     # small_patterns()
-    # restoring_images()
+    restoring_images()
     # random_connectivity()
 
     ## Capacity
