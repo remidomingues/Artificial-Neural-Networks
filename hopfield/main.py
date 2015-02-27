@@ -269,10 +269,10 @@ def biasedLearn(patterns):
 
     # Substract average activity to set mean at 0
     avg = sum(sum(p) for p in patterns) / float(n * len(patterns))
-    patterns = patterns - avg
+    updated_patterns = patterns - avg
 
     # Hebbs rule
-    for p in patterns:
+    for p in updated_patterns:
         w += np.outer(p, p)
 
     # Remove self connections
@@ -310,8 +310,9 @@ if __name__ == '__main__':
     #capacity_benchmarks(patterns, force_recovery=True, updates=1000, ntrials=10)
     # quantitative_plot(patterns)
 
-    # sparse_patterns = sparsePatterns(10, 100, 0.1)
-    # bias = np.array(xrange(10)) / 10.
-    # capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
+    ## Sparse patterns
+    sparse_patterns = sparsePatterns(10, 100, 0.1)
+    bias = np.array(range(4, 7)) / 10.
+    capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
 
     pass
