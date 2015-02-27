@@ -236,20 +236,26 @@ def capacity_benchmarks(patterns, force_recovery=False, updates=200, ntrials=10,
                     i, min(recovery_failure), recovery_failure.index(min(recovery_failure)),
                     max(recovery_failure), recovery_failure.index(max(recovery_failure)), recovery_failure)
 
-def quantitative_plot(patterns):
+def quantitative_plot(patterns, bias=None):
     FLIPPED = 30
     x = []
     y = []
     for n in xrange(1, len(patterns) + 1):
         x.append(n)
         considered_patterns = patterns[:n]
-        weights = utils.learn(considered_patterns)
+        if bias:
+            weights = biasedLearn(considered_patterns)
+        else:
+            weights = utils.learn(considered_patterns)
         recovered = 0
         for p in considered_patterns:
             for trial in xrange(10):
                 noisy = utils.flipper(p, FLIPPED)
                 for _ in xrange(10 * len(p)):
-                    utils.updateOne(weights, noisy)
+                    if bias:
+                        biasedUpdateOne(weights, noisy, bias)
+                    else:
+                        utils.updateOne(weights, noisy)
                     if utils.samePattern(noisy, p):
                         break
 
@@ -297,7 +303,7 @@ def sparsePatterns(n, length, activity=0.1):
 
 if __name__ == '__main__':
     # small_patterns()
-    restoring_images()
+    # restoring_images()
     # random_connectivity()
 
     ## Capacity
@@ -318,7 +324,8 @@ if __name__ == '__main__':
 
     ## Sparse patterns
     sparse_patterns = sparsePatterns(10, 100, 0.1)
-    bias = np.array(range(4, 7)) / 10.
-    capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
-
+    bias = np.array(range(5, 7)) / 10.
+    # capacity_benchmarks(sparse_patterns, force_recovery=True, updates=1000, ntrials=10, bias=bias)
+    quantitative_plot(sparse_patterns)
+    quantitative_plot(sparse_patterns, bias=0.5)
     pass
